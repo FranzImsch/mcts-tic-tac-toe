@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="MdrX_lar1-w-kcnfK0Eb" name="Page-1">
-        <mxGraphModel dx="1454" dy="659" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
+        <mxGraphModel dx="891" dy="824" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -22,7 +22,7 @@
                 <mxCell id="57" value="" style="edgeStyle=none;html=1;" parent="1" source="33" target="56" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="33" value="Machine-Learning&lt;div&gt;TicTacToe&lt;/div&gt;&lt;div&gt;Zuständigkeit: Alle&lt;/div&gt;" style="whiteSpace=wrap;html=1;align=center;strokeColor=light-dark(#ff0000, #ededed);" parent="1" vertex="1">
+                <mxCell id="33" value="Machine-Learning&lt;div&gt;TicTacToe&lt;/div&gt;&lt;div&gt;Zuständigkeit: Alle&lt;/div&gt;" style="whiteSpace=wrap;html=1;align=center;strokeColor=#FFFF33;" parent="1" vertex="1">
                     <mxGeometry x="380" y="120" width="100" height="50" as="geometry"/>
                 </mxCell>
                 <mxCell id="36" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="34" target="37" edge="1">
@@ -66,7 +66,7 @@
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="49" value="Zufalls-züge&lt;div&gt;Zuständigkeit:&lt;/div&gt;" style="whiteSpace=wrap;html=1;align=center;strokeColor=#FF0000;" parent="1" vertex="1">
-                    <mxGeometry x="435" y="420" width="100" height="40" as="geometry"/>
+                    <mxGeometry x="435" y="415" width="100" height="40" as="geometry"/>
                 </mxCell>
                 <mxCell id="53" value="" style="curved=1;endArrow=classic;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="47" target="34" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
