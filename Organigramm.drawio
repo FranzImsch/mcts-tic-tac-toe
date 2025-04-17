@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="MdrX_lar1-w-kcnfK0Eb" name="Page-1">
-        <mxGraphModel dx="891" dy="824" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
+        <mxGraphModel dx="828" dy="659" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -39,8 +39,8 @@
                 <mxCell id="40" value="" style="edgeStyle=none;html=1;" parent="1" source="37" target="39" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="37" value="Suchbaum-Struktur&lt;div&gt;Zuständigkeit:&amp;nbsp;&lt;/div&gt;" style="whiteSpace=wrap;html=1;align=center;strokeColor=#FF0000;" parent="1" vertex="1">
-                    <mxGeometry x="345" y="310" width="100" height="50" as="geometry"/>
+                <mxCell id="37" value="Suchbaum-Struktur&lt;div&gt;Zuständigkeit: Felix&amp;nbsp;&lt;/div&gt;" style="whiteSpace=wrap;html=1;align=center;strokeColor=#FFFF33;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="310" width="110" height="50" as="geometry"/>
                 </mxCell>
                 <mxCell id="39" value="Passender Datentyp&lt;div&gt;Zuständigkeit: Felix&lt;/div&gt;" style="whiteSpace=wrap;html=1;align=center;strokeColor=#FFFF33;" parent="1" vertex="1">
                     <mxGeometry x="525" y="300" width="115" height="70" as="geometry"/>
