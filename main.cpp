@@ -4,7 +4,7 @@
 
 using namespace std;
 
-bool error_flag = false;
+// bool error_flag = false;
 
 enum class Player
 {
@@ -124,10 +124,10 @@ public:
 
     bool is_terminal() // spiel ist vorbei, wenn
     {
-        if (check_win(int(Player::X)) || check_win(int(Player::O)) || is_draw())
+        if (check_win(int(Player::X)) || check_win(int(Player::O)) || is_draw()) // Gewinner ∃ oder unentschieden ist
             return true;
 
-        return false;
+        return false; // sonst nicht
     }
 
     int get_winner()
@@ -172,22 +172,22 @@ struct board_node
     }
 };
 
-const double C = 1.5;
+const double C = sqrt(2);
 
 board_node *select_best_child(board_node *node)
 {
-    double best_score = -10000000000; // hoffentlich klein genug…
+    double best_score = -INFINITY; // hoffentlich klein genug…
 
     board_node *best_child = nullptr;
 
     for (int i = 0; i < node->children.size(); i++)
     {
         board_node *child = node->children[i];
-
+        double ucb;
         if (child->games_played == 0) // Div/0 vorbeugen
-            return child;
+            ucb = INFINITY;
 
-        double ucb = (child->game_wins / double(child->games_played)) + C * sqrt(log(double(node->games_played)) / double(child->games_played)); // UCB des Kindes ausrechnen nach Formel aus VL
+        ucb = (child->game_wins / double(child->games_played)) + C * sqrt(log(double(node->games_played)) / double(child->games_played)); // UCB des Kindes ausrechnen nach Formel aus VL
 
         if (ucb > best_score) // wähle das beste Kind aus
         {
@@ -218,7 +218,7 @@ board_node *expand(board_node *node)
 double simulate(board current_board) // call by name damit nichts aus Versehen zerstört wird
 {
     board simulate_board = current_board; // für Simulation
-    int sim_player = current_board.get_next_player();
+    int sim_player = (current_board.get_next_player() == 1 ? int(Player::O) : int(Player::X));
 
     while (!simulate_board.is_terminal()) // Simuliere Spiel durch mit zufälligen Moves
     {
@@ -234,7 +234,7 @@ double simulate(board current_board) // call by name damit nichts aus Versehen z
     if (winner == sim_player) // Aktueller Player gewinnt
         return 1.0;
     else if (winner == int(Player::NONE))
-        return 0.5; // Unentschieden ist halb so schlimm
+        return 0.5; // Unentschieden besser als verlieren
     else
         return 0.; // verloren
 }
@@ -242,16 +242,14 @@ double simulate(board current_board) // call by name damit nichts aus Versehen z
 void backprop(board_node *node, double sim_result)
 {
     board_node *temp_node = node;
-    double result_for_parent = sim_result; // Beachte Perspektivwechsel des Elternknoten
+    double result = sim_result; // Start mit dem Blatt-Ergebnis
 
     while (temp_node != nullptr) // bis zum ANker
     {
         temp_node->games_played++;
-        temp_node->game_wins += sim_result;
-
-        result_for_parent = 1.0 - result_for_parent; // invertiertes Ergebnis für oberen Knoten!
-
-        temp_node = temp_node->parent; // move up to parent
+        temp_node->game_wins += result; // den gerade gültigen Wert addieren
+        result = 1.0 - result;          // für den Parent "invertieren"
+        temp_node = temp_node->parent;
     }
 }
 
@@ -332,7 +330,6 @@ void printfield(board *b)
     //     system("clear");
     // #endif
 
-    // cout << " ___________\n";
     for (int i = 0; i < 3; i++) // iterate through rows
     {
         cout << "   |   |   \n ";
@@ -379,12 +376,12 @@ int main()
         if (player == int(Player::X)) // Mensch
         {
             cout << "X ist am Zug. Gib einen Zug ein (0-8): ";
-            cin >> move; // @@@@ hier noch get_possible_moves
+            cin >> move; // @@@@ hier noch get_possible_moves checken
         }
         else
         {
             cout << "AI (O) macht Zug... " << endl;
-            move = mcts_get_move(game, 100000); // 1000 Iterationen
+            move = mcts_get_move(game, 100000);
         }
         game = game.make_move(move);
     }
