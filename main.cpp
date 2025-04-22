@@ -218,6 +218,7 @@ board_node *expand(board_node *node)
 double simulate(board current_board) // call by name damit nichts aus Versehen zerstört wird
 {
     board simulate_board = current_board; // für Simulation
+    int sim_player = current_board.get_next_player();
 
     while (!simulate_board.is_terminal()) // Simuliere Spiel durch mit zufälligen Moves
     {
@@ -227,11 +228,13 @@ double simulate(board current_board) // call by name damit nichts aus Versehen z
         simulate_board = simulate_board.make_move(move); // Spiele damit weiter bis zum Ende
     }
 
-    int player = current_board.get_next_player();
+    // int player = current_board.get_next_player();
     int winner = simulate_board.get_winner();
 
-    if ((player == int(Player::X)) && (winner == int(Player::X)) || (player == int(Player::O) && (winner == int(Player::O)))) // Aktueller Player gewinnt
+    if (winner == sim_player) // Aktueller Player gewinnt
         return 1.0;
+    else if (winner == int(Player::NONE))
+        return 0.5; // Unentschieden ist halb so schlimm
     else
         return 0.; // verloren
 }
@@ -239,17 +242,22 @@ double simulate(board current_board) // call by name damit nichts aus Versehen z
 void backprop(board_node *node, double sim_result)
 {
     board_node *temp_node = node;
+    double result_for_parent = sim_result; // Beachte Perspektivwechsel des Elternknoten
+
     while (temp_node != nullptr) // bis zum ANker
     {
         temp_node->games_played++;
         temp_node->game_wins += sim_result;
+
+        result_for_parent = 1.0 - result_for_parent; // invertiertes Ergebnis für oberen Knoten!
+
         temp_node = temp_node->parent; // move up to parent
     }
 }
 
 int mcts_get_move(board game, int n) // n ist Zahl der Iterationen
 {
-    board_node game_anchor(game, nullptr, -1); // @@@@@@ -1 richtig??
+    board_node game_anchor(game, nullptr, -1);
 
     for (int i = 0; i < n; i++)
     {
@@ -283,9 +291,9 @@ int mcts_get_move(board game, int n) // n ist Zahl der Iterationen
 
     // Jetzt kann der beste Zug gewählt werden
 
-    int best_move;
+    int best_move = -1;
     double best_win_rate = -1.;
-    double highest_games_played = -1.;
+    // double highest_games_played = -1.;
 
     for (int i = 0; i < game_anchor.children.size(); i++) // Alle möglichen Optionen durchgehen
     {
@@ -295,6 +303,10 @@ int mcts_get_move(board game, int n) // n ist Zahl der Iterationen
             continue;
 
         double win_rate = child->game_wins / double(child->games_played);
+
+        cout << "Child Move: " << child->parent_move
+             << ", WinRate: " << win_rate
+             << " (" << child->game_wins << "/" << child->games_played << ")" << endl;
 
         if (win_rate > best_win_rate)
         {
