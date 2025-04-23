@@ -384,8 +384,9 @@ int main()
         int move = -1;
         if (player == int(Player::X)) // Mensch
         {
-            cout << "X ist am Zug. Gib einen Zug ein (0-8): ";
+            cout << "X ist am Zug. Gib einen Zug ein (1-9): ";
             cin >> move; // @@@@ hier noch get_possible_moves checken
+            move--;
         }
         else
         {
