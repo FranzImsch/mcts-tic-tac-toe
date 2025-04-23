@@ -128,7 +128,7 @@ public:
         return false; // andernfalls ist player kein Gewinner
     }
 
-    bool is_terminal() // spiel ist vorbei, wenn
+    bool is_terminal() // spiel ist todgeweiht, wenn
     {
         if (check_win(int(Player::X)) || check_win(int(Player::O)) || is_draw()) // Gewinner ∃ oder unentschieden ist
             return true;
@@ -384,9 +384,18 @@ int main()
         int move = -1;
         if (player == int(Player::X)) // Mensch
         {
-            cout << "X ist am Zug. Gib einen Zug ein (1-9): ";
-            cin >> move; // @@@@ hier noch get_possible_moves checken
-            move--;
+            bool valid = false;
+            vector<int> valid_moves = game.get_possible_moves();
+
+            while (!valid)
+            {
+                cout << "X ist am Zug. Gib einen Zug ein (1-9): ";
+                cin >> move;
+                move--; // [1-9] |-> [0-8]
+                for (int i = 0; i < valid_moves.size(); i++)
+                    if (valid_moves[i] == move)
+                        valid = true;
+            }
         }
         else
         {
