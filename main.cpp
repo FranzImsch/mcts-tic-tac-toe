@@ -1,10 +1,12 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cmath>
 
 using namespace std;
 
 // bool error_flag = false;
+const bool best_move = true;
 
 enum class Player
 {
@@ -98,6 +100,10 @@ public:
 
     bool check_win(int player)
     {
+        if (this->turn < 5)
+        {
+            return false;
+        }
         for (int i = 0; i < 9; i += 3) // Reihen
             if (this->board_state[i] == player &&
                 this->board_state[i + 1] == player &&
@@ -185,10 +191,13 @@ board_node *select_best_child(board_node *node)
         board_node *child = node->children[i];
         double ucb;
         if (child->games_played == 0) // Div/0 vorbeugen
+        {
             ucb = INFINITY;
-
-        ucb = (child->game_wins / double(child->games_played)) + C * sqrt(log(double(node->games_played)) / double(child->games_played)); // UCB des Kindes ausrechnen nach Formel aus VL
-
+        }
+        else
+        {
+            ucb = (child->game_wins / double(child->games_played)) + C * sqrt(log(double(node->games_played)) / double(child->games_played)); // UCB des Kindes ausrechnen nach Formel aus VL
+        }
         if (ucb > best_score) // wähle das beste Kind aus
         {
             best_score = ucb;
