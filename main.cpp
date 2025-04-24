@@ -5,8 +5,21 @@
 
 using namespace std;
 
-// bool error_flag = false;
-const bool best_move = true;
+#ifdef _WIN32
+#include <random>
+
+int rndm_impl(int upper_bound) // https://stackoverflow.com/questions/288739/generate-random-numbers-uniformly-over-an-entire-range
+{
+    random_device rand_dev;
+    mt19937 generator(rand_dev());
+    uniform_int_distribution<int> distr(0, upper_bound);
+
+    return distr(generator);
+}
+
+#else
+#define rndm(upper_bound) arc4random_uniform(upper_bound) // macOS
+#endif
 
 enum class Player
 {
@@ -387,15 +400,17 @@ int main()
             bool valid = false;
             vector<int> valid_moves = game.get_possible_moves();
 
+            cout << "X ist am Zug. Gib einen Zug ein (1-9): ";
             while (!valid)
             {
-                cout << "X ist am Zug. Gib einen Zug ein (1-9): ";
                 cin >> move;
                 move--; // [1-9] |-> [0-8]
                 for (int i = 0; i < valid_moves.size(); i++)
                     if (valid_moves[i] == move)
                         valid = true;
+                cout << "Ungültige Eingabe. Erneut probieren: ";
             }
+            cout << endl;
         }
         else
         {
@@ -406,5 +421,17 @@ int main()
     }
 
     printfield(&game);
+
+    cout << endl;
+    if (game.get_winner() == int(Player::X))
+        cout << "X hat gewonnen.";
+    else if (game.get_winner() == int(Player::O))
+        cout << "O hat gewonnen.";
+    else if (game.is_draw())
+        cout << "Es ist unentschieden.";
+
+    cout << endl
+         << endl;
+
     return 0;
 }
