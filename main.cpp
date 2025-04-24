@@ -8,7 +8,7 @@ using namespace std;
 #ifdef _WIN32
 #include <random>
 
-int rndm_impl(int upper_bound) // https://stackoverflow.com/questions/288739/generate-random-numbers-uniformly-over-an-entire-range
+int rndm(int upper_bound) // https://stackoverflow.com/questions/288739/generate-random-numbers-uniformly-over-an-entire-range
 {
     random_device rand_dev;
     mt19937 generator(rand_dev());
@@ -385,7 +385,18 @@ void printfield(board *b)
 }
 
 int main()
-{
+{ /*    Test für die neue und verbesserte Zufallsfunktion 5000 ultra deluxe pro!
+     double average = 0;
+     float sum = 0;
+     for (int jj = 0; jj < 500; jj++)
+     {
+         int rand_int = (rndm(1000) - 3);
+         sum += rand_int;
+         average = sum / (jj + 1);
+         cout << "Zufallszahl zwischen 0 und 1000:" << rand_int << "\n";
+         cout << "Durchschnitts-wert:" << average << "\n";
+     }
+         */
 
     board game = board();
 
