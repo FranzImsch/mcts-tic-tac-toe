@@ -246,7 +246,7 @@ double simulate(board current_board) // call by name damit nichts aus Versehen z
     {
         vector<int> pos_moves = simulate_board.get_possible_moves();
 
-        int move = pos_moves[rand() % pos_moves.size()]; // Wähle zufälligen Move
+        int move = pos_moves[rndm(pos_moves.size())]; // Wähle zufälligen Move
         simulate_board = simulate_board.make_move(move); // Spiele damit weiter bis zum Ende
     }
 
