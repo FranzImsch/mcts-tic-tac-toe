@@ -8,7 +8,7 @@ using namespace std;
 #ifdef _WIN32
 #include <random>
 
-int rndm_impl(int upper_bound) // https://stackoverflow.com/questions/288739/generate-random-numbers-uniformly-over-an-entire-range
+int rndm(int upper_bound) // https://stackoverflow.com/questions/288739/generate-random-numbers-uniformly-over-an-entire-range
 {
     random_device rand_dev;
     mt19937 generator(rand_dev());
@@ -246,7 +246,7 @@ double simulate(board current_board) // call by name damit nichts aus Versehen z
     {
         vector<int> pos_moves = simulate_board.get_possible_moves();
 
-        int move = pos_moves[rand() % pos_moves.size()]; // Wähle zufälligen Move
+        int move = pos_moves[rndm(pos_moves.size())]; // Wähle zufälligen Move
         simulate_board = simulate_board.make_move(move); // Spiele damit weiter bis zum Ende
     }
 
