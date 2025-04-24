@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cmath>
 
 using namespace std;
 
@@ -215,7 +216,9 @@ board_node *expand(board_node *node)
     return new_child; // Gib Zeiger auf den neuen Knoten zurück
 }
 
-double simulate(board current_board) // call by name damit nichts aus Versehen zerstört wird
+int mcts_get_move(board game, int n, int depth); //forward declaration so dass die Funktion in simulate schon aufgerufen werden kann
+
+double simulate(board current_board, int mcts_depth) // call by name damit nichts aus Versehen zerstört wird
 {
     board simulate_board = current_board; // für Simulation
     int sim_player = (current_board.get_next_player() == 1 ? int(Player::O) : int(Player::X));
@@ -225,6 +228,9 @@ double simulate(board current_board) // call by name damit nichts aus Versehen z
         vector<int> pos_moves = simulate_board.get_possible_moves();
 
         int move = pos_moves[rand() % pos_moves.size()]; // Wähle zufälligen Move
+        if(mcts_depth > 0){
+            move = mcts_get_move(simulate_board, 100, mcts_depth-1);
+        }
         simulate_board = simulate_board.make_move(move); // Spiele damit weiter bis zum Ende
     }
 
@@ -253,7 +259,7 @@ void backprop(board_node *node, double sim_result)
     }
 }
 
-int mcts_get_move(board game, int n) // n ist Zahl der Iterationen
+int mcts_get_move(board game, int n, int depth) // n ist Zahl der Iterationen
 {
     board_node game_anchor(game, nullptr, -1);
 
@@ -281,7 +287,7 @@ int mcts_get_move(board game, int n) // n ist Zahl der Iterationen
         }
 
         // Simulation
-        double sim_res = simulate(promising->this_board);
+        double sim_res = simulate(promising->this_board, depth);
 
         // Backpropagation
         backprop(promising, sim_res);
@@ -301,11 +307,12 @@ int mcts_get_move(board game, int n) // n ist Zahl der Iterationen
             continue;
 
         double win_rate = child->game_wins / double(child->games_played);
-
-        cout << "Child Move: " << child->parent_move
-             << ", WinRate: " << win_rate
-             << " (" << child->game_wins << "/" << child->games_played << ")" << endl;
-
+        if(depth > 2){ //kein konsolenspam in den nested simulationen
+            cout << "NestingLevel: " << depth
+                << " Child Move: " << child->parent_move
+                << ", WinRate: " << win_rate
+                << " (" << child->game_wins << "/" << child->games_played << ")" << endl;
+        }
         if (win_rate > best_win_rate)
         {
             best_win_rate = win_rate;
@@ -377,11 +384,13 @@ int main()
         {
             cout << "X ist am Zug. Gib einen Zug ein (0-8): ";
             cin >> move; // @@@@ hier noch get_possible_moves checken
+            // cout << "well you are so bad the AI (X) will play for you" << endl;
+            // move = mcts_get_move(game, 10, 0);
         }
         else
         {
             cout << "AI (O) macht Zug... " << endl;
-            move = mcts_get_move(game, 100000);
+            move = mcts_get_move(game, 100, 2);
         }
         game = game.make_move(move);
     }
