@@ -246,7 +246,7 @@ double simulate(board current_board) // call by name damit nichts aus Versehen z
     {
         vector<int> pos_moves = simulate_board.get_possible_moves();
 
-        int move = pos_moves[rndm(pos_moves.size())]; // Wähle zufälligen Move
+        int move = pos_moves[rndm(pos_moves.size())];    // Wähle zufälligen Move
         simulate_board = simulate_board.make_move(move); // Spiele damit weiter bis zum Ende
     }
 
@@ -398,51 +398,153 @@ int main()
      }
          */
 
-    board game = board();
+    // clear terminal on Windows or on a proper OS
+#ifdef _WIN32
+    system("cls");
+#else
+    system("clear");
+#endif
 
-    while (!game.is_terminal())
+    // Begrüßungstext
+    cout << "Willkommen beim Next Gen. AI  powered Tic-Tac-Toe-Spiel!" << endl
+         << "Hier kannst du auch ohne echte Freunde spielen." << endl;
+
+    // Charakterauswahl
+    cout << "Wähle zunächst aus, ob Du X oder O spielen willst. Beachte dabei, dass X das Spiel beginnt." << endl
+         << "Gib C ein, um den Computer gegen sich selbst spielen zu lassen." << endl
+         << "Wähle (X/O/C): ";
+
+    int player_start = -1;
+    char input;
+    bool valid = false;
+    while (!valid)
     {
-        printfield(&game);
+        cin >> input;
 
-        int player = game.get_next_player();
-        int move = -1;
-        if (player == int(Player::X)) // Mensch
+        cout << input << endl;
+
+        if (input == 'X' || input == 'x')
         {
-            bool valid = false;
-            vector<int> valid_moves = game.get_possible_moves();
-
-            cout << "X ist am Zug. Gib einen Zug ein (1-9): ";
-            while (!valid)
-            {
-                cin >> move;
-                move--; // [1-9] |-> [0-8]
-                for (int i = 0; i < valid_moves.size(); i++)
-                    if (valid_moves[i] == move)
-                        valid = true;
-                cout << "Ungültige Eingabe. Erneut probieren: ";
-            }
-            cout << endl;
+            player_start = int(Player::X);
+            valid = true;
+        }
+        else if (input == 'O' || input == 'o')
+        {
+            player_start = int(Player::O);
+            valid = true;
+        }
+        else if (input == 'C' || input == 'c')
+        {
+            player_start = int(Player::NONE);
+            valid = true;
         }
         else
-        {
-            cout << "AI (O) macht Zug... " << endl;
-            move = mcts_get_move(game, 100000);
-        }
-        game = game.make_move(move);
+            cout << "Ungültige Eingabe. Erneut versuchen (X/O/C): ";
     }
 
-    printfield(&game);
+    // erstelle Spielfeld
+    board game = board();
 
-    cout << endl;
-    if (game.get_winner() == int(Player::X))
-        cout << "X hat gewonnen.";
-    else if (game.get_winner() == int(Player::O))
-        cout << "O hat gewonnen.";
-    else if (game.is_draw())
-        cout << "Es ist unentschieden.";
+    if (player_start != int(Player::NONE)) // Wenn Mensch vs. Maschine ausgewählt wurde
+    {
+        while (!game.is_terminal())
+        {
+            printfield(&game);
 
-    cout << endl
-         << endl;
+            int player = game.get_next_player();
+            int move = -1;
+            if (player == player_start) // Mensch
+            {
+                valid = false;
+                vector<int> valid_moves = game.get_possible_moves();
 
-    return 0;
+                cout << "X ist am Zug. Gib einen Zug ein (1-9): ";
+                while (!valid)
+                {
+                    cin >> move;
+                    move--; // [1-9] |-> [0-8]
+                    for (int i = 0; i < valid_moves.size(); i++)
+                        if (valid_moves[i] == move)
+                            valid = true;
+                    cout << "Ungültige Eingabe. Erneut probieren: ";
+                }
+                cout << endl;
+            }
+            else // AI
+            {
+                cout << "AI (O) macht Zug... " << endl;
+                move = mcts_get_move(game, 100000);
+            }
+            game = game.make_move(move);
+        }
+        printfield(&game);
+
+        cout << endl;
+        if (game.get_winner() == int(Player::X))
+            cout << "X hat gewonnen.";
+        else if (game.get_winner() == int(Player::O))
+            cout << "O hat gewonnen.";
+        else if (game.is_draw())
+            cout << "Es ist unentschieden.";
+
+        cout << endl
+             << endl;
+
+        return 0;
+    }
+    else
+    {
+        // Spiele n Spiele Maschine vs. Maschine und gib Statistik aus.
+        vector<int> winner_stats;
+
+        int n_simulations = 5; // n: Anzahl der Spiele AI <-> AI
+
+        for (int i = 0; i < n_simulations; i++)
+        {
+            board game = board();
+
+            while (!game.is_terminal())
+            {
+                int player = game.get_next_player();
+                int move = -1;
+                if (player == int(Player::X))
+                {
+                    cout << "AI (X) macht Zug... " << endl;
+                    move = mcts_get_move(game, 100000);
+                }
+                else // AI
+                {
+                    cout << "AI (O) macht Zug... " << endl;
+                    move = mcts_get_move(game, 100000);
+                }
+                game = game.make_move(move);
+            }
+
+            winner_stats.push_back(game.get_winner()); // Speichere Ergebnis in Liste
+        }
+
+        int X_wins = 0, O_wins = 0, Draws = 0;
+
+        for (int i = 0; i < winner_stats.size(); i++)
+        {
+            if (winner_stats[i] == int(Player::X))
+                X_wins++;
+            else if (winner_stats[i] == int(Player::O))
+                O_wins++;
+            else
+                Draws++;
+        }
+
+        cout << endl
+             << endl
+             << endl
+             << endl;
+
+        cout << "Ergebnisse sehen wie folgt aus." << endl
+             << "Gespielte Spiele: " << winner_stats.size() << endl
+             << "Gewinne X: " << X_wins << endl
+             << "Gewinne O: " << O_wins << endl
+             << "Unentschiedene Spiele: " << Draws << endl
+             << endl;
+    }
 }
