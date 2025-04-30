@@ -5,19 +5,13 @@
 
 using namespace std;
 
-#ifdef _WIN32 // Falls das Programm auf Windows läuft
-#include <random>
-
 int rndm(int upper_bound) // Erzeugt eine Zufallszahl zwischen 0 und der gegebenen Obergrenze
 {
-    return rand() % upper_bound; // Zufall Modulo Obergrenze
+    return rand() % upper_bound; // Zufallszahl Modulo Obergrenze, resultiert in Zahl in [0 ; upper_bound]
 }
-#else                                                     // Falls das Programm  nicht auf Windows läuft
-#define rndm(upper_bound) arc4random_uniform(upper_bound) // macOS
-#endif
 
 enum class Player // Ersatzsymbole für X, O und kein Spieler, um Code besser lesbar zu machen.
-{
+{                 // Syntax: Player::NONE oder ähnliches (muss noch als Datentyp gecastet werden!)
     NONE = 0,
     X = 1,
     O = 2
@@ -25,10 +19,12 @@ enum class Player // Ersatzsymbole für X, O und kein Spieler, um Code besser le
 
 class board // Klasse um ein beliebiges Spielbrett zu erzeugen
 {
-    vector<int> board_state; // 0 = leer, 1 = X, -1=O
+    /*All das ist privat, kann also von außerhalb der Klasse nicht direkt gelesen/geschrieben werden!*/
+    vector<int> board_state; // 0 = leer, 1 = X, 2=O
     int turn;                // Anzahl Züge bis jetzt
     bool next_player;        // 0 = O, 1 = X (Player in diesem Spiel)
 
+    /*All das ist öffentlich*/
 public:
     board(int turn_nr, vector<int> currentstate, bool last_played) // Konstruktor, erzeugt ein neues Brett mit dem Status der in
     {                                                              // currentstate übergeben wird, dem aktuellen Zug und welcher Spieler
@@ -44,50 +40,53 @@ public:
         for (int jj = 0; jj < 9; jj++)                      //
         {                                                   //
             this->board_state.push_back(int(Player::NONE)); // Jedes Feld mit leer initialisieren
-        } //
+        }
         this->turn = 0;                      // Zugnummer mit 0 initialisieren
         this->next_player = bool(Player::X); // Standard: X fangt an (der Cast funktioniert,
     } // weil Player::X nur 1 entspricht und damit als "wahr" gecastet wird.)
     int get_cell_state(int cell)        // Gibt den Status einer bestimmten Zelle zurück,
     {                                   // mit 0=leeres Feld,1 = X in diesem Feld,
-        return this->board_state[cell]; //-1 = O in diesem Feld
+        return this->board_state[cell]; // 2 = O in diesem Feld
     }
     int get_turn() // Gibt den aktuellen Zug zurück (Standard getter-funktion)
     {
         return this->turn;
     }
-    int get_next_player() // Gibt zurück, welcher Spieler als nachstes Spielen darf
-    {
-        if (this->next_player) // X
-            return int(Player::X);
+    int get_next_player()          // Gibt zurück, welcher Spieler als nachstes Spielen darf
+    {                              // Im Prinzip auch eine ganz normale getter-funktion, nur dass der Return-Wert nicht direkt dem gespeicherten Wert
+        if (this->next_player)     // entspricht.
+            return int(Player::X); // Hier wird X zurückgegeben, wenn der nächste Spieler X ist
 
-        return int(Player::O); // Ansonsten O
+        else
+            return int(Player::O); // Ansonsten O
     }
 
     vector<int> get_possible_moves() // Gibt die Menge an möglichen Zügen im aktuellen Brett zurück
     {
-        vector<int> possible_moves;
+        vector<int> possible_moves; // Der Vektor, der die Felder die noch bespielt werden können, enthält
 
         for (int i = 0; i < 9; i++)                        // Für jedes Feld in board_state wird überprüft, ob es leer ist.
             if (this->board_state[i] == int(Player::NONE)) // Falls ja, wird dieses Feld in den vector possible_moves
-                possible_moves.push_back(i);               // eingefügt
+                possible_moves.push_back(i);               // eingefügt, ansonsten eben nicht
 
-        return possible_moves; // Falls alle Felder belegt sind, gibt diese Funktion einen leeren Vector zurück.
+        return possible_moves; // Falls alle Felder belegt sind, gibt diese Funktion einen leeren Vektor zurück.
     }
 
     board make_move(int cell) // Erzeugt ein neues Brett, in dem der aktuelle Zug gemacht wurde.
     {
         if (cell > 8 || cell < 0 || board_state[cell] != int(Player::NONE)) // Fehler-erkennung falls das Feld nicht frei
             cout << "error making move" << endl;                            // oder außerhalb des Spielfelds ist.
-
-        vector<int> new_board_state = this->board_state;
+                                                                            // Außer einer Fehlermeldung wird nichts ausgegeben, da trotzdem
+                                                 // ein return-Wert erwartet wird. Falls es jemals zu diesem Fehler
+                                                 // kommt, stürzt das Programm einfach ab.
+        vector<int> new_board_state = this->board_state; // Den aktuellen Brett-Zustand übernehmen
 
         int next_move;
 
         if (this->next_player)
             next_move = int(Player::X);
         else
-            next_move = int(Player::O);    // next_player wird in int umgewandelt
+            next_move = int(Player::O);    // Next player wird in den entsprechenden int-Wert umgewandelt
         new_board_state[cell] = next_move; // Array updaten mit neuem Move
 
         board new_board(turn + 1, new_board_state, next_player); // Neues Board mit neuem Zustand und anderem Spieler erzeugen
