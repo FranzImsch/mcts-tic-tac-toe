@@ -77,9 +77,10 @@ public:
         if (cell > 8 || cell < 0 || board_state[cell] != int(Player::NONE)) // Fehler-erkennung falls das Feld nicht frei
             cout << "error making move" << endl;                            // oder außerhalb des Spielfelds ist.
                                                                             // Außer einer Fehlermeldung wird nichts ausgegeben, da trotzdem
-                                                 // ein return-Wert erwartet wird. Falls es jemals zu diesem Fehler
-                                                 // kommt, stürzt das Programm einfach ab.
-        vector<int> new_board_state = this->board_state; // Den aktuellen Brett-Zustand übernehmen
+                                                                            // ein return-Wert erwartet wird. Falls es jemals zu diesem Fehler
+                                                                            // kommt, stürzt das Programm einfach ab,
+                                                                            // weil wir kein Error-handling außerhalb dieser Funktion haben.
+        vector<int> new_board_state = this->board_state;                    // Den aktuellen Brett-Zustand übernehmen
 
         int next_move;
 
@@ -87,11 +88,11 @@ public:
             next_move = int(Player::X);
         else
             next_move = int(Player::O);    // Next player wird in den entsprechenden int-Wert umgewandelt
-        new_board_state[cell] = next_move; // Array updaten mit neuem Move
+        new_board_state[cell] = next_move; // Den neuen Zug im Brett speichern
 
         board new_board(turn + 1, new_board_state, next_player); // Neues Board mit neuem Zustand und anderem Spieler erzeugen
 
-        return new_board;
+        return new_board; // Und auch zurückgeben
     }
 
     bool is_draw() // Überprüfen ob das Brett unentschieden ist
@@ -99,7 +100,7 @@ public:
         if (check_win(int(Player::X)) || check_win(int(Player::O))) // Wenn es einen Gewinner gibt, dann kein Unentschieden
             return false;
 
-        if (this->turn >= 9) // wenn kein Gewinner, aber 9. Zug, dann ist Unentschieden
+        if (this->turn >= 9) // Wenn es keinen Gewinner gibt, wir aber schon im 9. Zug sind, dann ist es unentschieden
             return true;
 
         return false; // sonst noch nicht Untentschieden
@@ -132,10 +133,10 @@ public:
             this->board_state[6] == player)
             return true;
 
-        return false; // andernfalls ist player kein Gewinner
+        return false; // andernfalls ist der player kein Gewinner
     }
 
-    bool ist_todgeweiht() // spiel ist todgeweiht, wenn
+    bool ist_todgeweiht() // Brett ist todgeweiht, wenn
     {
         if (check_win(int(Player::X)) || check_win(int(Player::O)) || is_draw()) // Gewinner ∃ oder unentschieden ist
             return true;
@@ -163,7 +164,7 @@ struct board_node // Struct für die Knoten des Monte-Carlo Baumes
     int parent_move = 0; // Wie wurde der Knoten erzeugt?
 
     int games_played = 0; // Spiele die ab hier gespielt wurden
-    double game_wins = 0; // Gewinne des Spielers aus Sicht des Elternknotens
+    double game_wins = 0; // Anzahl Gewinne des Spielers aus Sicht des Elternknotens
 
     vector<int> untried_moves; // Züge, die noch nicht ausprobiert wurden (ab dem jetzigen Brett)
 
@@ -221,7 +222,8 @@ board_node *expand(board_node *node) // Den aktuellen Knoten erweitern
         return nullptr;                  // dann kann der Knoten auch nicht erweitert werden
 
     int next_move = node->untried_moves[0];                 // Nächster Move wird der erste aus den unversuchten Zügen
-    node->untried_moves.erase(node->untried_moves.begin()); // Natürlich den gewählten Zug dann auch löschen
+    node->untried_moves.erase(node->untried_moves.begin()); // Natürlich den gewählten Zug dann auch löschen, jetzt ist
+                                                            // er nicht mehr unversucht
 
     board new_board_state = node->this_board.make_move(next_move); // erstelle neues Board mit dem ausgewählten Zug
 
@@ -234,7 +236,7 @@ board_node *expand(board_node *node) // Den aktuellen Knoten erweitern
 
 double simulate(board current_board) // call by name damit nichts aus Versehen zerstört wird
 {
-    board simulate_board = current_board; // für Simulation
+    board simulate_board = current_board; // Brett trotzdem nochmal kopieren
     int sim_player;
     if (current_board.get_next_player() == 1) // Den betrachteten Spieler invertieren
         sim_player = int(Player::O);
@@ -246,7 +248,7 @@ double simulate(board current_board) // call by name damit nichts aus Versehen z
     {
         vector<int> pos_moves = simulate_board.get_possible_moves();
 
-        int move = pos_moves[rndm(pos_moves.size())];    // Wahle zufalligen Move
+        int move = pos_moves[rndm(pos_moves.size())];    // Wahle zufalligen Move aus den möglichen Zügen
         simulate_board = simulate_board.make_move(move); // Spiele damit weiter bis zum Ende
     }
 
@@ -269,7 +271,8 @@ void backprop(board_node *node, double sim_result) // Die Back-propagation des M
     {
         temp_node->games_played++;      // Spiel-anzahl erhöhen
         temp_node->game_wins += result; // den gerade gültigen Wert addieren
-        result = 1.0 - result;          // für den Parent "invertieren"
+        result = 1.0 - result;          // für den Parent "invertieren", ein Gewinn wird also zu 0, eine Niederlage zu 1
+                                        // (unentschieden bleibt gleich)
         temp_node = temp_node->parent;  // Einen Knoten "nach oben" gehen
     }
 }
@@ -278,26 +281,27 @@ int mcts_get_move(board game, int n) // n ist Zahl der Iterationen
 {
     board_node game_anchor(game, nullptr, -1); // Anker für diesen Monte-Carlo-Baum erzeugen
 
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < n; i++) // Für die anzahl Iterationen
     {
         board_node *promising = &game_anchor; // Starte beim Anker
 
         // Selection
         // Spiele den Baum bis unten durch mit den besten Kindern
         while (!promising->this_board.ist_todgeweiht() && // Solange das Spiel nicht um ist
-               promising->untried_moves.empty())          // und alle Kinder existieren
+               promising->untried_moves.empty())          // und alle möglichen Kinder existieren
         {
-            // Wenn keine untried moves da sind, wahle das beste Kind
-            if (!promising->children.empty())
-                promising = select_best_child(promising);
+
+            if (!promising->children.empty())             // Wenn es Kinderknoten gibt
+                promising = select_best_child(promising); // Wird der beste der Kinderknoten ausgewählt
             else
-                break;
+                break; // sobald es keine Kinderknoten mehr gibt (am Blatt angekommen)
+                       // wird die Schleife verlassen
         }
 
         // Expansion
-        if (!promising->this_board.ist_todgeweiht() && !(promising->untried_moves.empty()))
+        if (!promising->this_board.ist_todgeweiht() && !(promising->untried_moves.empty())) // Wenn dieses Brett nicht zu Ende gespielt ist
         {
-            // Expansion: Erzeuge EINEN neuen Kindknoten aus einem untried move
+            // Expansion: Erzeuge EINEN neuen Kindknoten aus dem ersten unversuchten Zug
             promising = expand(promising);
         }
 
@@ -313,7 +317,7 @@ int mcts_get_move(board game, int n) // n ist Zahl der Iterationen
     int best_move = -1;
     double best_win_rate = -1.;
 
-    for (int i = 0; i < game_anchor.children.size(); i++) // Alle möglichen Optionen durchgehen
+    for (int i = 0; i < game_anchor.children.size(); i++) // Alle möglichen Kinderknoten vom Anker durchgehen
     {
         board_node *child = game_anchor.children[i];
 
@@ -322,11 +326,11 @@ int mcts_get_move(board game, int n) // n ist Zahl der Iterationen
 
         double win_rate = child->game_wins / double(child->games_played); // Kill-Death-Ratio berechnen
 
-        cout << "Child Move: " << child->parent_move
+        cout << "Child Move: " << child->parent_move // Informationen auf der Konsole ausgeben
              << ", WinRate: " << win_rate
              << " (" << child->game_wins << "/" << child->games_played << ")" << endl;
 
-        if (win_rate > best_win_rate)
+        if (win_rate > best_win_rate) // Wenn die aktuelle win-rate besser ist als die bisher beste win-rate
         {
             best_win_rate = win_rate;
             best_move = i; // das ist dann unser bester Move
@@ -338,29 +342,27 @@ int mcts_get_move(board game, int n) // n ist Zahl der Iterationen
         }
     }
 
-    return game_anchor.children[best_move]->parent_move;
+    return game_anchor.children[best_move]->parent_move; // Der Zug der zum besten Kind-Knoten geführt hat wird zurückgegeben
 }
 
 void printfield(board *b) // Gibt das Spielfeld in der Konsole aus
 {
 
-    for (int i = 0; i < 3; i++) // iterate through rows
+    for (int i = 0; i < 3; i++) // Durch die Reihen durchgehen
     {
         cout << "   |   |   \n ";
-        for (int j = 0; j < 3; j++) // iterate through columns
+        for (int j = 0; j < 3; j++) // Durch die Spalten durchgehen
         {
-            if (b->get_cell_state(i * 3 + j) == int(Player::NONE))
+            if (b->get_cell_state(i * 3 + j) == int(Player::NONE)) // Leeres Feld
             {
-                cout << " ";
+                cout << " "; // Leer ausgeben
             }
-            else if (b->get_cell_state(i * 3 + j) == int(Player::O))
+            else if (b->get_cell_state(i * 3 + j) == int(Player::O)) // O-Feld
             {
-                cout << "O";
+                cout << "O"; // O ausgeben
             }
-            else if (b->get_cell_state(i * 3 + j) == int(Player::X))
-                cout << "X";
-            else
-                cout << "?";
+            else if (b->get_cell_state(i * 3 + j) == int(Player::X)) // X-Feld
+                cout << "X";                                         // X ausgeben
 
             if (j != 2) // print pipe between contents
                 cout << " | ";
@@ -396,21 +398,19 @@ int main()
     {
         cin >> input; // Spieler-Input verarbeiten
 
-        cout << input << endl;
-
-        if (input == 'X' || input == 'x')
+        if (input == 'X' || input == 'x') // Wenn X eingegeben wurde
         {
-            player_start = int(Player::X);
-            valid = true;
+            player_start = int(Player::X); // Den start-spieler als X definieren
+            valid = true;                  // Spielstart erlauben
         }
-        else if (input == 'O' || input == 'o')
+        else if (input == 'O' || input == 'o') // Wenn O eingegeben wurde
         {
             player_start = int(Player::O);
-            valid = true;
+            valid = true; // Start-Spieler als O definieren und erlauben
         }
-        else if (input == 'C' || input == 'c')
+        else if (input == 'C' || input == 'c') // Wenn C eingegeben wurde
         {
-            player_start = int(Player::NONE);
+            player_start = int(Player::NONE); // KI gegen KI spielen lassen
             valid = true;
         }
         else
@@ -428,13 +428,13 @@ int main()
 
             int player = game.get_next_player();
             int move = -1;
-            if (player == player_start) // Mensch
+            if (player == player_start) // Wenn der nächste Spieler auf diesem Brett der menschliche Spieler ist
             {
                 valid = false;
                 vector<int> valid_moves = game.get_possible_moves();
 
                 cout << "X ist am Zug. Gib einen Zug ein (1-9): ";
-                while (!valid)
+                while (!valid) // Eingabe verarbeiten
                 {
                     cin >> move;
                     move--; // [1-9] |-> [0-8]
@@ -449,18 +449,19 @@ int main()
                 }
                 cout << endl;
             }
-            else // AI
+            else // Ansonsten ist die KI am Zug
             {
                 cout << "AI (O) macht Zug... " << endl;
-                move = mcts_get_move(game, 100000); // 100k Bretter mit mcts simulieren und den besten Zug behalten
+                move = mcts_get_move(game, 100000); // 100k Bretter mit mcts simulieren und den besten Zug AB DEM JETZIGEN BRETT auswählen
+                                                    // Nach jedem Mensch-Zug wird der Baum also komplett neu berechnet
             }
             game = game.make_move(move); // Den besten Zug auch machen
         }
-        // Ab jetzt ist das Spiel zu Ende
-        printfield(&game); // Spielfeld wieder ausgeben
+        // Ab jetzt ist das Brett todgeweiht
+        printfield(&game); // Spielfeld ausgeben
 
         cout << endl;
-        if (game.get_winner() == int(Player::X)) // Überprüfen wer gewonnen hat
+        if (game.get_winner() == int(Player::X)) // Überprüfen wer gewonnen hat und entsprechende Ausgabe machen
             cout << "X hat gewonnen.";
         else if (game.get_winner() == int(Player::O))
             cout << "O hat gewonnen.";
@@ -470,7 +471,7 @@ int main()
         cout << endl
              << endl;
 
-        return 0;
+        return 0; // Programm endet nach einer Partie
     }
     else
     {
@@ -520,7 +521,7 @@ int main()
              << endl
              << endl;
 
-        cout << "Ergebnisse sehen wie folgt aus." << endl
+        cout << "Ergebnisse sehen wie folgt aus." << endl // Ergebnisse auf die Konsole schreiben
              << "Gespielte Spiele: " << winner_stats.size() << endl
              << "Gewinne X: " << X_wins << endl
              << "Gewinne O: " << O_wins << endl
