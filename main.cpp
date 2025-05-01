@@ -1,3 +1,16 @@
+/*
+Projektarbeit 1 – MCTS
+Gruppe:
+Jasmin Ballein
+Felix Bär
+Kolja Wallentin
+Franz Imschweiler
+Wir stimmen der Veröffentlichung unseres Source Code in anonymisierter Form zu.
+
+Copyright (C) 2025 Ballein, Bär, Wallentin, Imschweiler
+SPDX-License-Identifier: MIT
+*/
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -478,7 +491,7 @@ int main()
         // Spiele n Spiele Maschine vs. Maschine und gib Statistik aus.
         vector<int> winner_stats;
 
-        int n_simulations = 5; // n: Anzahl der Spiele AI <-> AI
+        int n_simulations = 100; // n: Anzahl der Spiele AI <-> AI
 
         for (int i = 0; i < n_simulations; i++) // Gleiche gameplay-loop wie bei Mensch vs. Maschine, nur dass 2 KIs gegeneinander spielen
         {
