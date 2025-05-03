@@ -20,8 +20,12 @@ using namespace std;
 
 int rndm(int upper_bound) // Erzeugt eine Zufallszahl zwischen 0 und der gegebenen Obergrenze
 {
+#ifdef _WIN32
     return rand() % upper_bound; // Zufallszahl Modulo Obergrenze, resultiert in Zahl in [0 ; upper_bound]
-}
+#else
+    return arc4random_uniform(upper_bound); // auf macOS und Linux (?) wird die hardware entropy engine verwendet
+#endif
+} 
 
 enum class Player // Ersatzsymbole für X, O und kein Spieler, um Code besser lesbar zu machen.
 {                 // Syntax: Player::NONE oder ähnliches (muss noch als Datentyp gecastet werden!)
@@ -435,6 +439,8 @@ int main()
 
     if (player_start != int(Player::NONE)) // Wenn Mensch vs. Maschine ausgewahlt wurde
     {
+        bool first_ai_game_played = false; // Flag für Bias der KI im ersten Zug
+
         while (!game.ist_todgeweiht()) // So lange das spiel noch nicht zu Ende ist
         {
             printfield(&game); // Spielfeld anzeigen
@@ -465,8 +471,16 @@ int main()
             else // Ansonsten ist die KI am Zug
             {
                 cout << "AI (O) macht Zug... " << endl;
-                move = mcts_get_move(game, 100000); // 100k Bretter mit mcts simulieren und den besten Zug AB DEM JETZIGEN BRETT auswählen
-                                                    // Nach jedem Mensch-Zug wird der Baum also komplett neu berechnet
+                if (!first_ai_game_played) // Bias der KI im ersten Zug:
+                {
+                    first_ai_game_played = true; // Bias entfernen
+                    move = 0;                    // Immer oben links anfangen
+                }
+                else
+                {
+                    move = mcts_get_move(game, 100000); // 100k Bretter mit mcts simulieren und den besten Zug AB DEM JETZIGEN BRETT auswählen
+                    // Nach jedem Mensch-Zug wird der Baum also komplett neu berechnet
+                }
             }
             game = game.make_move(move); // Den besten Zug auch machen
         }
