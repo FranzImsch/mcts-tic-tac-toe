@@ -446,7 +446,11 @@ int main()
                 valid = false;
                 vector<int> valid_moves = game.get_possible_moves();
 
-                cout << "X ist am Zug. Gib einen Zug ein (1-9): ";
+                if(player_start == 1){
+                    cout << "X ist am Zug. Gib einen Zug ein (1-9): ";
+                }else{
+                    cout << "O ist am Zug. Gib einen Zug ein (1-9): ";
+                }
                 while (!valid) // Eingabe verarbeiten
                 {
                     cin >> move;
@@ -464,7 +468,11 @@ int main()
             }
             else // Ansonsten ist die KI am Zug
             {
-                cout << "AI (O) macht Zug... " << endl;
+                if(player_start == 1){
+                    cout << "AI (O) macht Zug... " << endl;
+                }else{
+                    cout << "AI (X) macht Zug... " << endl;
+                }
                 move = mcts_get_move(game, 100000); // 100k Bretter mit mcts simulieren und den besten Zug AB DEM JETZIGEN BRETT auswählen
                                                     // Nach jedem Mensch-Zug wird der Baum also komplett neu berechnet
             }
@@ -512,6 +520,7 @@ int main()
                     move = mcts_get_move(game, 100000);
                 }
                 game = game.make_move(move);
+                printfield(&game);
             }
 
             winner_stats.push_back(game.get_winner()); // Speichere Ergebnis in Liste
